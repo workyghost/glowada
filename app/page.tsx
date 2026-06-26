@@ -383,10 +383,6 @@ export default async function Home() {
                     src={`https://harfmix.com/wp-content/uploads/2023/08/${logo}-150x90.jpg`}
                     alt={logo}
                     className="h-full object-contain filter invert opacity-50 hover:opacity-90 transition-opacity"
-                    onError={(e) => {
-                      // fallback if image breaks
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
                   />
                 </div>
               ))}
