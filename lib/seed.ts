@@ -24,7 +24,7 @@ export async function ensureSeeded() {
     });
 
     const harfmixSettings = {
-      logoUrl: "Glowada",
+      logoUrl: "/images/glowada_logo.png",
       phone: "+90 (212) 664 57 67",
       email: "info@glowada.com",
       whatsapp: "+90 532 551 68 44",
@@ -59,16 +59,23 @@ export async function ensureSeeded() {
         {
           title: "Görünürlüğünüzü Artırın",
           description: "Glowada ile tanışın. Reklam, tabela ve tanıtım alanında yaratıcılığın sınırlarını zorlayan bir dünya.",
-          imageUrl: "https://harfmix.com/wp-content/uploads/2023/08/hakkimizda-1.jpg",
+          imageUrl: "video",
           linkUrl: "#talep-formu",
           order: 1,
         },
         {
-          title: "Manyetik Harf Serisi",
-          description: "Kurulum için herhangi bir araç gereksinimi olmadan son derece basit ve rahattır.",
-          imageUrl: "https://harfmix.com/wp-content/uploads/2023/08/open-led-harf-2-1024x859.jpg",
+          title: "Masaüstü Akülü Işıklı Menü Panoları",
+          description: "Çift taraflı, şarj edilebilir LED aydınlatmalı tasarımıyla restoran ve barlarınız için mükemmel masaüstü menü tutucular.",
+          imageUrl: "/images/glowada_slider_1.png",
           linkUrl: "#products",
           order: 2,
+        },
+        {
+          title: "Şarj Edilebilir LED Masaüstü Menü Panosu",
+          description: "Uzun pil ömrü, kablosuz kullanım kolaylığı ve parlak şık LED kenarlarıyla masalarınıza zarafet katın.",
+          imageUrl: "/images/glowada_slider_2.png",
+          linkUrl: "#products",
+          order: 3,
         },
       ],
     });

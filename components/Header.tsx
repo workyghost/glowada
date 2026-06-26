@@ -50,23 +50,23 @@ export default function Header({ settings }: { settings: SettingsProps }) {
   };
 
   const kurumsalLinks = [
-    { name: "Hakkımızda", href: "#about" },
-    { name: "Sertifikalarımız", href: "#about" },
-    { name: "Şirket Kültürü", href: "#why-us" },
-    { name: "Tesislerimiz", href: "#why-us" },
-    { name: "Küresel Dağıtım Ağı", href: "#footer1" },
-    { name: "Partnerlerimiz", href: "#partners" },
+    { name: "Hakkımızda", href: "/#about" },
+    { name: "Sertifikalarımız", href: "/#about" },
+    { name: "Şirket Kültürü", href: "/#why-us" },
+    { name: "Tesislerimiz", href: "/#why-us" },
+    { name: "Küresel Dağıtım Ağı", href: "/#footer1" },
+    { name: "Partnerlerimiz", href: "/#partners" },
   ];
 
   const urunLinks = [
-    { name: "Manyetik Harf Serisi", href: "#products" },
-    { name: "Üstten Askılı Harf Serisi", href: "#products" },
-    { name: "Led Reklam Panosu", href: "#products" },
-    { name: "P3 Bağımsız Led Modüler Harf", href: "#products" },
-    { name: "Çift Taraflı Yuvarlak Led Ekran", href: "#products" },
-    { name: "A4 / A5 / Kare Light Box", href: "#products" },
-    { name: "Aksesuarlar", href: "#products" },
-    { name: "Dış Mekan Tabelalar", href: "#products" },
+    { name: "Manyetik Harf Serisi", href: "/#products" },
+    { name: "Üstten Askılı Harf Serisi", href: "/#products" },
+    { name: "Led Reklam Panosu", href: "/#products" },
+    { name: "P3 Bağımsız Led Modüler Harf", href: "/#products" },
+    { name: "Çift Taraflı Yuvarlak Led Ekran", href: "/#products" },
+    { name: "A4 / A5 / Kare Light Box", href: "/#products" },
+    { name: "Aksesuarlar", href: "/#products" },
+    { name: "Dış Mekan Tabelalar", href: "/#products" },
   ];
 
   return (
@@ -181,13 +181,13 @@ export default function Header({ settings }: { settings: SettingsProps }) {
               </div>
             </div>
 
-            <Link href="#why-us" className="hover:text-[#f44d46] transition-colors">
+            <Link href="/#work" className="hover:text-[#f44d46] transition-colors">
               Çalışmalarımız
             </Link>
-            <Link href="#talep-formu" className="hover:text-[#f44d46] transition-colors">
+            <Link href="/#talep-formu" className="hover:text-[#f44d46] transition-colors">
               Bayilik
             </Link>
-            <Link href="#contact" className="hover:text-[#f44d46] transition-colors">
+            <Link href="/#contact" className="hover:text-[#f44d46] transition-colors">
               İletişim
             </Link>
           </div>
@@ -263,21 +263,21 @@ export default function Header({ settings }: { settings: SettingsProps }) {
             </div>
 
             <Link
-              href="#why-us"
+              href="/#work"
               onClick={() => setIsOpen(false)}
               className="text-slate-800 font-bold hover:text-[#f44d46] transition-colors py-2 border-b border-slate-50"
             >
               Çalışmalarımız
             </Link>
             <Link
-              href="#talep-formu"
+              href="/#talep-formu"
               onClick={() => setIsOpen(false)}
               className="text-slate-800 font-bold hover:text-[#f44d46] transition-colors py-2 border-b border-slate-50"
             >
               Bayilik
             </Link>
             <Link
-              href="#contact"
+              href="/#contact"
               onClick={() => setIsOpen(false)}
               className="text-slate-800 font-bold hover:text-[#f44d46] transition-colors py-2 border-b border-slate-50"
             >

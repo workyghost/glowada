@@ -318,7 +318,7 @@ export default async function Home() {
       </section>
 
       {/* 8. Sektörel Uygulamalar Section */}
-      <section className="py-24 px-4 bg-[#140808]">
+      <section id="work" className="py-24 px-4 bg-[#140808]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-[#f44d46] font-extrabold uppercase tracking-widest text-xs">
@@ -368,7 +368,7 @@ export default async function Home() {
       </div>
 
       {/* 10. Partnerlerimiz Section */}
-      <section className="py-20 px-4 bg-[#0a0202] border-t border-slate-900">
+      <section id="partners" className="py-20 px-4 bg-[#0a0202] border-t border-slate-900">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-center font-black text-xl text-white uppercase tracking-widest mb-10">
             Partnerlerimiz

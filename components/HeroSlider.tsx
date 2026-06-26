@@ -40,72 +40,72 @@ export default function HeroSlider({ slides, videoUrl }: { slides: Slide[]; vide
 
   return (
     <div className="relative h-[85vh] w-full overflow-hidden bg-black">
-      {/* Video Background if available */}
-      {isVideo ? (
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover scale-102"
-          >
-            <source src={videoUrl} type="video/mp4" />
-          </video>
-          {/* Dark Overlay */}
-          <div className="absolute inset-0 bg-black/70 mix-blend-multiply" />
-        </div>
-      ) : null}
-
       {/* Slides Container */}
-      {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-            index === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-          }`}
-        >
-          {/* Background Image if NOT using background video */}
-          {!isVideo && (
-            <>
-              <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-105"
-                style={{ backgroundImage: `url(${slide.imageUrl})` }}
-              />
-              {/* Dark Overlay */}
-              <div className="absolute inset-0 bg-black/60 mix-blend-multiply" />
-            </>
-          )}
+      {slides.map((slide, index) => {
+        const showVideoForSlide = isVideo && (!slide.imageUrl || !slide.imageUrl.startsWith("/"));
 
-          {/* Content */}
-          <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="max-w-4xl text-center text-white flex flex-col items-center gap-6">
-              {slide.title && (
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-tight animate-fadeInUp text-white drop-shadow-lg">
-                  {slide.title}
-                </h1>
-              )}
-              {slide.description && (
-                <p className="text-base md:text-xl text-slate-200 max-w-2xl font-light leading-relaxed animate-fadeInUp delay-100 drop-shadow-md">
-                  {slide.description}
-                </p>
-              )}
-              {slide.linkUrl && (
-                <a
-                  href={slide.linkUrl}
-                  className="inline-flex items-center gap-2 bg-[#f44d46] hover:bg-[#d43d36] text-white font-extrabold py-3.5 px-8 rounded-full shadow-lg hover:shadow-[#f44d46]/20 hover:scale-105 transition-all text-base animate-fadeInUp delay-200"
+        return (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+              index === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+            }`}
+          >
+            {showVideoForSlide ? (
+              <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover scale-102"
                 >
-                  <span>Detayları İncele</span>
-                  <ArrowRight className="w-5 h-5" />
-                </a>
-              )}
+                  <source src={videoUrl} type="video/mp4" />
+                </video>
+                {/* Dark Overlay */}
+                <div className="absolute inset-0 bg-black/70 mix-blend-multiply" />
+              </div>
+            ) : (
+              <>
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-105"
+                  style={{ backgroundImage: `url(${slide.imageUrl})` }}
+                />
+                {/* Dark Overlay */}
+                <div className="absolute inset-0 bg-black/60 mix-blend-multiply" />
+              </>
+            )}
+
+            {/* Content */}
+            <div className="absolute inset-0 flex items-center justify-center px-4 z-20">
+              <div className="max-w-4xl text-center text-white flex flex-col items-center gap-6">
+                {slide.title && (
+                  <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-tight animate-fadeInUp text-white drop-shadow-lg">
+                    {slide.title}
+                  </h1>
+                )}
+                {slide.description && (
+                  <p className="text-base md:text-xl text-slate-200 max-w-2xl font-light leading-relaxed animate-fadeInUp delay-100 drop-shadow-md">
+                    {slide.description}
+                  </p>
+                )}
+                {slide.linkUrl && (
+                  <a
+                    href={slide.linkUrl}
+                    className="inline-flex items-center gap-2 bg-[#f44d46] hover:bg-[#d43d36] text-white font-extrabold py-3.5 px-8 rounded-full shadow-lg hover:shadow-[#f44d46]/20 hover:scale-105 transition-all text-base animate-fadeInUp delay-200"
+                  >
+                    <span>Detayları İncele</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
-      {/* Navigation Arrows (Only shown when not playing video background or if multiple slides present) */}
-      {!isVideo && slides.length > 1 && (
+      {/* Navigation Arrows (Shown when multiple slides present) */}
+      {slides.length > 1 && (
         <>
           <button
             onClick={handlePrev}
