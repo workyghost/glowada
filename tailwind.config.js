@@ -20,6 +20,12 @@ module.exports = {
           900: '#78350f',
           950: '#451a03',
         },
+        brand: {
+          red: '#f44d46',
+          yellow: '#feb311',
+          dark: '#0a0202',
+          'dark-gray': '#303030',
+        }
       },
     },
   },

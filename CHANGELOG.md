@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-06-26
+
+### Added
+- **Harfmix Page Layout & Copy**: Fully replicated Harfmix structure for Glowada including dark neon styling (`#0a0202`), red accents (`#f44d46`), and gold accents (`#feb311`).
+- **All 10 Core Sections**: Integrated Hero Video loop, About Us, Mission/Vision/Certificates cards, Most Popular Product card, Products Grid, Why Us list, YouTube Videos Grid, Sectoral Applications, Request Form, and Partner Marquee.
+- **Dynamic Video Management**: Added `Video` model to Prisma schema, created `/api/videos` and `/api/videos/[id]` endpoints, and integrated the "Video Yönetimi" tab in the Admin Dashboard.
+- **Distributor Customization**: Extended `Setting` model and UI with fields for distributor text ("Glowada Abcmix'in Türkiye Distribütörüdür."), Twitter link, and YouTube channel.
+
 ## [1.0.0] - 2026-06-26
 
 ### Added

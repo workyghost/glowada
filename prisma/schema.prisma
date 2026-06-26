@@ -38,17 +38,29 @@ model Product {
   updatedAt   DateTime @updatedAt
 }
 
+model Video {
+  id         String   @id @default(cuid())
+  youtubeUrl String
+  title      String   @default("")
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model Setting {
-  id           String   @id @default("default")
-  logoUrl      String   @default("")
-  phone        String   @default("")
-  email        String   @default("")
-  whatsapp     String   @default("")
-  address      String   @default("")
-  youtubeUrl   String   @default("")
-  instagramUrl String   @default("")
-  facebookUrl  String   @default("")
-  footerText   String   @default("")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default("default")
+  logoUrl         String   @default("")
+  phone           String   @default("")
+  email           String   @default("")
+  whatsapp        String   @default("")
+  address         String   @default("")
+  distributorText String   @default("")
+  youtubeUrl      String   @default("")
+  instagramUrl    String   @default("")
+  facebookUrl     String   @default("")
+  twitterUrl      String   @default("")
+  youtubeChanUrl  String   @default("")
+  footerText      String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

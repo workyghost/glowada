@@ -16,7 +16,7 @@ import {
   MapPin,
   Mail,
   Phone,
-  Video
+  Video as VideoIcon
 } from "lucide-react";
 
 interface Slide {
@@ -38,34 +38,47 @@ interface Product {
   order: number;
 }
 
+interface VideoType {
+  id: string;
+  youtubeUrl: string;
+  title: string;
+  order: number;
+}
+
 interface SettingsProps {
   logoUrl?: string;
   phone?: string;
   email?: string;
   whatsapp?: string;
   address?: string;
+  distributorText?: string;
   youtubeUrl?: string;
   instagramUrl?: string;
   facebookUrl?: string;
+  twitterUrl?: string;
+  youtubeChanUrl?: string;
   footerText?: string;
 }
 
 interface AdminDashboardProps {
   initialSlides: Slide[];
   initialProducts: Product[];
+  initialVideos?: VideoType[];
   initialSettings?: SettingsProps;
 }
 
 export default function AdminDashboard({
   initialSlides,
   initialProducts,
+  initialVideos = [],
   initialSettings,
 }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<"settings" | "sliders" | "products">("settings");
+  const [activeTab, setActiveTab] = useState<"settings" | "sliders" | "products" | "videos">("settings");
 
   // State Management
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
   const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [videos, setVideos] = useState<VideoType[]>(initialVideos);
   const [settings, setSettings] = useState<SettingsProps>(
     initialSettings || {
       logoUrl: "Glowada",
@@ -73,9 +86,12 @@ export default function AdminDashboard({
       email: "",
       whatsapp: "",
       address: "",
+      distributorText: "",
       youtubeUrl: "",
       instagramUrl: "",
       facebookUrl: "",
+      twitterUrl: "",
+      youtubeChanUrl: "",
       footerText: "",
     }
   );
@@ -106,6 +122,15 @@ export default function AdminDashboard({
   });
   const [productLoading, setProductLoading] = useState(false);
   const [productStatus, setProductStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Form states - Videos
+  const [newVideo, setNewVideo] = useState({
+    youtubeUrl: "",
+    title: "",
+    order: "0",
+  });
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [videoStatus, setVideoStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Actions - Settings Update
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -243,8 +268,63 @@ export default function AdminDashboard({
     }
   };
 
+  // Actions - Add Video
+  const handleAddVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVideo.youtubeUrl) {
+      setVideoStatus({ type: "error", message: "YouTube URL alanı zorunludur." });
+      return;
+    }
+
+    setVideoLoading(true);
+    setVideoStatus(null);
+
+    try {
+      const res = await fetch("/api/videos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newVideo,
+          order: parseInt(newVideo.order) || 0,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setVideos((prev) => [...prev, data.video].sort((a, b) => a.order - b.order));
+        setNewVideo({ youtubeUrl: "", title: "", order: "0" });
+        setVideoStatus({ type: "success", message: "Video başarıyla eklendi." });
+        setTimeout(() => setVideoStatus(null), 3000);
+      } else {
+        setVideoStatus({ type: "error", message: data.error || "Video eklenirken bir hata oluştu." });
+      }
+    } catch (err) {
+      setVideoStatus({ type: "error", message: "Ağ hatası. Tekrar deneyiniz." });
+    } finally {
+      setVideoLoading(false);
+    }
+  };
+
+  // Actions - Delete Video
+  const handleDeleteVideo = async (id: string) => {
+    if (!confirm("Bu videoyu silmek istediğinizden emin misiniz?")) return;
+
+    try {
+      const res = await fetch(`/api/videos/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setVideos((prev) => prev.filter((v) => v.id !== id));
+      } else {
+        alert(data.error || "Video silinemedi.");
+      }
+    } catch (err) {
+      alert("Ağ hatası oluştu.");
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 text-slate-800">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -298,15 +378,26 @@ export default function AdminDashboard({
           <Package className="w-4 h-4" />
           <span>Ürün Yönetimi</span>
         </button>
+        <button
+          onClick={() => setActiveTab("videos")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all ${
+            activeTab === "videos"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          }`}
+        >
+          <VideoIcon className="w-4 h-4" />
+          <span>Video Yönetimi</span>
+        </button>
       </div>
 
       {/* Tab Contents */}
       <div className="w-full">
         {/* Tab 1: Settings */}
         {activeTab === "settings" && (
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
+          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm animate-fadeIn">
             <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-glowada-500" />
+              <Settings className="w-5 h-5 text-[#f44d46]" />
               <span>Sistem Ayarları</span>
             </h2>
 
@@ -336,10 +427,9 @@ export default function AdminDashboard({
                     type="text"
                     value={settings.logoUrl}
                     onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
                     placeholder="Glowada veya Logo Resim URL"
                   />
-                  <span className="text-[10px] text-slate-400">Görsel için logo URL&apos;i yazabilir, metin için marka ismi bırakabilirsiniz.</span>
                 </div>
 
                 {/* Phone */}
@@ -352,8 +442,8 @@ export default function AdminDashboard({
                     type="text"
                     value={settings.phone}
                     onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                    placeholder="+90 555 123 45 67"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="+90 (212) 664 57 67"
                   />
                 </div>
               </div>
@@ -369,7 +459,7 @@ export default function AdminDashboard({
                     type="email"
                     value={settings.email}
                     onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
                     placeholder="info@glowada.com"
                   />
                 </div>
@@ -384,30 +474,43 @@ export default function AdminDashboard({
                     type="text"
                     value={settings.whatsapp}
                     onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                    placeholder="+90 555 123 45 67"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="+90 532 551 68 44"
                   />
-                  <span className="text-[10px] text-slate-400">Ülke kodu ile birlikte (Örn: +90 555...)</span>
+                  <span className="text-[10px] text-slate-400">Ülke kodu ve başında + olmadan sadece rakam önerilir.</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* YouTube Link */}
+                {/* Distributor text */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase text-slate-650 flex items-center gap-1">
-                    <Video className="w-3.5 h-3.5" />
-                    <span>YouTube Video Linki</span>
-                  </label>
+                  <label className="text-xs font-bold uppercase text-slate-650">Distribütör Açıklama Notu</label>
                   <input
-                    type="url"
-                    value={settings.youtubeUrl}
-                    onChange={(e) => setSettings({ ...settings, youtubeUrl: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    type="text"
+                    value={settings.distributorText}
+                    onChange={(e) => setSettings({ ...settings, distributorText: e.target.value })}
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="Glowada Abcmix'in Türkiye Distribütörüdür."
                   />
-                  <span className="text-[10px] text-slate-400">Anasayfada yer alacak tanıtım videosunun linki.</span>
                 </div>
 
+                {/* Hero Background video URL */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase text-slate-650 flex items-center gap-1">
+                    <VideoIcon className="w-3.5 h-3.5" />
+                    <span>Kahraman Bölgesi Video Arka Planı (MP4 URL)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.youtubeUrl}
+                    onChange={(e) => setSettings({ ...settings, youtubeUrl: e.target.value })}
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="https://www.elegansajans.com/wp-content/.../manyetik-harf-serisi.mp4"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Socials - Instagram */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase text-slate-650">Instagram Linki</label>
@@ -415,13 +518,11 @@ export default function AdminDashboard({
                     type="url"
                     value={settings.instagramUrl}
                     onChange={(e) => setSettings({ ...settings, instagramUrl: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                    placeholder="https://instagram.com/glowada"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="https://instagram.com/harfmix"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Socials - Facebook */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase text-slate-650">Facebook Linki</label>
@@ -429,8 +530,34 @@ export default function AdminDashboard({
                     type="url"
                     value={settings.facebookUrl}
                     onChange={(e) => setSettings({ ...settings, facebookUrl: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
                     placeholder="https://facebook.com/glowada"
+                  />
+                </div>
+
+                {/* Socials - Twitter */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase text-slate-650">Twitter/X Linki</label>
+                  <input
+                    type="url"
+                    value={settings.twitterUrl}
+                    onChange={(e) => setSettings({ ...settings, twitterUrl: e.target.value })}
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="https://twitter.com/glowada"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Youtube Channel URL */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase text-slate-650">YouTube Kanal Linki</label>
+                  <input
+                    type="url"
+                    value={settings.youtubeChanUrl}
+                    onChange={(e) => setSettings({ ...settings, youtubeChanUrl: e.target.value })}
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="https://youtube.com/@glowadacom"
                   />
                 </div>
 
@@ -438,14 +565,14 @@ export default function AdminDashboard({
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold uppercase text-slate-650 flex items-center gap-1">
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Footer Alt Metni</span>
+                    <span>Footer Telif Hakkı Metni</span>
                   </label>
                   <input
                     type="text"
                     value={settings.footerText}
                     onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                    placeholder="© 2026 Glowada LED & Tabela. Tüm hakları saklıdır."
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="© Copyright 2026 Glowada ® | Glowada Ezgi Reklamevi Markasıdır."
                   />
                 </div>
               </div>
@@ -460,8 +587,8 @@ export default function AdminDashboard({
                   value={settings.address}
                   onChange={(e) => setSettings({ ...settings, address: e.target.value })}
                   rows={3}
-                  className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors resize-none"
-                  placeholder="İkitelli OSB, İSDÖK Sanayi Sitesi, Başakşehir / İstanbul"
+                  className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors resize-none"
+                  placeholder="Seyitnizam Mah. Demirciler Sit. 9. Cd. No:36 34015 Zeytinburnu/İstanbul"
                 ></textarea>
               </div>
 
@@ -469,7 +596,7 @@ export default function AdminDashboard({
                 <button
                   type="submit"
                   disabled={settingsLoading}
-                  className="flex items-center gap-2 bg-slate-900 hover:bg-glowada-500 hover:text-slate-900 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
+                  className="flex items-center gap-2 bg-slate-900 hover:bg-[#f44d46] hover:text-white text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   <span>{settingsLoading ? "Kaydediliyor..." : "Ayarları Kaydet"}</span>
@@ -481,11 +608,11 @@ export default function AdminDashboard({
 
         {/* Tab 2: Sliders */}
         {activeTab === "sliders" && (
-          <div className="space-y-8">
+          <div className="space-y-8 animate-fadeIn">
             {/* Add Slide Form */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm animate-fadeIn">
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-glowada-500" />
+                <Plus className="w-5 h-5 text-[#f44d46]" />
                 <span>Yeni Slayt Ekle</span>
               </h2>
 
@@ -515,8 +642,8 @@ export default function AdminDashboard({
                       required
                       value={newSlide.title}
                       onChange={(e) => setNewSlide({ ...newSlide, title: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="Göz Alıcı LED Tabelalar"
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Görünürlüğünüzü Artırın"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -526,8 +653,8 @@ export default function AdminDashboard({
                       required
                       value={newSlide.imageUrl}
                       onChange={(e) => setNewSlide({ ...newSlide, imageUrl: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="https://images.unsplash.com/..."
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="https://harfmix.com/wp-content/uploads/..."
                     />
                   </div>
                 </div>
@@ -539,8 +666,8 @@ export default function AdminDashboard({
                       type="text"
                       value={newSlide.description}
                       onChange={(e) => setNewSlide({ ...newSlide, description: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="İşletmeniz için modern reklam çözümleri sunuyoruz."
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Glowada ile tanışın. Reklam ve tanıtımda sınırları zorluyoruz."
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -549,29 +676,28 @@ export default function AdminDashboard({
                       type="number"
                       value={newSlide.order}
                       onChange={(e) => setNewSlide({ ...newSlide, order: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
                       placeholder="1"
                     />
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase text-slate-650">Buton Linki (Harekete Geçirici Buton)</label>
+                  <label className="text-xs font-bold uppercase text-slate-650">Buton Linki</label>
                   <input
                     type="text"
                     value={newSlide.linkUrl}
                     onChange={(e) => setNewSlide({ ...newSlide, linkUrl: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                    placeholder="#contact (veya dış link /products vb.)"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                    placeholder="#talep-formu (veya dış link)"
                   />
-                  <span className="text-[10px] text-slate-400">Boş bırakılırsa slayt üzerinde buton görüntülenmez.</span>
                 </div>
 
                 <div className="pt-3 flex justify-end">
                   <button
                     type="submit"
                     disabled={slideLoading}
-                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-glowada-500 hover:text-slate-900 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
+                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-[#f44d46] hover:text-white text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
                   >
                     <Plus className="w-4.5 h-4.5" />
                     <span>Slayt Ekle</span>
@@ -583,12 +709,12 @@ export default function AdminDashboard({
             {/* Slide List */}
             <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-glowada-500" />
+                <ImageIcon className="w-5 h-5 text-[#f44d46]" />
                 <span>Mevcut Slaytlar</span>
               </h2>
 
               {slides.length === 0 ? (
-                <p className="text-center text-slate-500 py-6">Henüz slayt eklenmemiş. Lütfen yukarıdan yeni bir slayt ekleyin.</p>
+                <p className="text-center text-slate-500 py-6">Henüz slayt eklenmemiş.</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {slides.map((slide) => (
@@ -596,7 +722,6 @@ export default function AdminDashboard({
                       key={slide.id}
                       className="border border-slate-150 rounded-2xl overflow-hidden flex flex-col bg-slate-50 group hover:shadow-md transition-shadow"
                     >
-                      {/* Image Preview */}
                       <div className="relative aspect-video bg-slate-200 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={slide.imageUrl} alt={slide.title} className="w-full h-full object-cover" />
@@ -605,16 +730,10 @@ export default function AdminDashboard({
                         </span>
                       </div>
 
-                      {/* Content */}
                       <div className="p-4 flex-grow flex flex-col justify-between gap-4">
                         <div>
-                          <h4 className="font-extrabold text-base text-slate-900 truncate">{slide.title || "(Başlıksız Slayt)"}</h4>
-                          <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{slide.description || "Açıklama girilmedi."}</p>
-                          {slide.linkUrl && (
-                            <span className="inline-block bg-slate-200 text-slate-700 text-[10px] font-bold py-0.5 px-2 rounded mt-2 truncate max-w-full">
-                              Link: {slide.linkUrl}
-                            </span>
-                          )}
+                          <h4 className="font-extrabold text-base text-slate-900 truncate">{slide.title || "(Başlıksız)"}</h4>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{slide.description}</p>
                         </div>
 
                         <div className="pt-3 border-t border-slate-200 flex justify-end">
@@ -637,11 +756,11 @@ export default function AdminDashboard({
 
         {/* Tab 3: Products */}
         {activeTab === "products" && (
-          <div className="space-y-8">
+          <div className="space-y-8 animate-fadeIn">
             {/* Add Product Form */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm animate-fadeIn">
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-glowada-500" />
+                <Plus className="w-5 h-5 text-[#f44d46]" />
                 <span>Yeni Ürün / Uygulama Ekle</span>
               </h2>
 
@@ -671,8 +790,8 @@ export default function AdminDashboard({
                       required
                       value={newProduct.name}
                       onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="Pleksi Kutu Harf Tabela"
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Manyetik Harf Serisi"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -682,8 +801,8 @@ export default function AdminDashboard({
                       required
                       value={newProduct.category}
                       onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="Örn: Kutu Harf, LED Tabela, Krom Tabela"
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Örn: Ürünlerimiz veya Aksesuarlar"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -693,8 +812,8 @@ export default function AdminDashboard({
                       required
                       value={newProduct.imageUrl}
                       onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="https://images.unsplash.com/..."
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="https://harfmix.com/wp-content/uploads/..."
                     />
                   </div>
                 </div>
@@ -706,18 +825,18 @@ export default function AdminDashboard({
                       type="text"
                       value={newProduct.description}
                       onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="Paslanmaz sarı krom harf, içten LED modüllü aydınlatma, su sızdırmaz trafolu..."
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Manyetik LED Harfler, markanızın hikayesini anlatır..."
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase text-slate-650">Fiyat Açıklaması / Başlangıç Fiyatı</label>
+                    <label className="text-xs font-bold uppercase text-slate-650">Fiyat Açıklaması / Not</label>
                     <input
                       type="text"
                       value={newProduct.price}
                       onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors"
-                      placeholder="₺2.500 veya Fiyat Teklifi Alınız"
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Detaylı Bilgi İçin Teklif Alın"
                     />
                   </div>
                 </div>
@@ -728,7 +847,7 @@ export default function AdminDashboard({
                     type="number"
                     value={newProduct.order}
                     onChange={(e) => setNewProduct({ ...newProduct, order: e.target.value })}
-                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-glowada-500 transition-colors w-full md:w-1/3"
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors w-full md:w-1/3"
                     placeholder="0"
                   />
                 </div>
@@ -737,7 +856,7 @@ export default function AdminDashboard({
                   <button
                     type="submit"
                     disabled={productLoading}
-                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-glowada-500 hover:text-slate-900 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
+                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-[#f44d46] hover:text-white text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
                   >
                     <Plus className="w-4.5 h-4.5" />
                     <span>Ürün Ekle</span>
@@ -746,15 +865,15 @@ export default function AdminDashboard({
               </form>
             </div>
 
-            {/* Product List Table / Grid */}
+            {/* Product List */}
             <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
               <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                <Package className="w-5 h-5 text-glowada-500" />
+                <Package className="w-5 h-5 text-[#f44d46]" />
                 <span>Mevcut Ürünler</span>
               </h2>
 
               {products.length === 0 ? (
-                <p className="text-center text-slate-500 py-6">Henüz ürün eklenmemiş. Lütfen yukarıdan yeni bir ürün ekleyin.</p>
+                <p className="text-center text-slate-500 py-6">Henüz ürün eklenmemiş.</p>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-slate-200">
                   <table className="w-full text-left border-collapse">
@@ -780,7 +899,6 @@ export default function AdminDashboard({
                           <td className="py-4 px-6 font-bold text-slate-900">
                             <div>
                               <p className="truncate max-w-[200px]">{product.name}</p>
-                              <p className="text-xs text-slate-400 font-light truncate max-w-[200px] mt-0.5">{product.description || "Açıklama yok"}</p>
                             </div>
                           </td>
                           <td className="py-4 px-6">
@@ -803,6 +921,139 @@ export default function AdminDashboard({
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Videos */}
+        {activeTab === "videos" && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Add Video Form */}
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-[#f44d46]" />
+                <span>Yeni YouTube Videosu Ekle</span>
+              </h2>
+
+              {videoStatus && (
+                <div
+                  className={`mb-6 p-4 rounded-xl flex items-start gap-2.5 text-sm ${
+                    videoStatus.type === "success"
+                      ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                      : "bg-red-50 border border-red-200 text-red-800"
+                  }`}
+                >
+                  {videoStatus.type === "success" ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-650 shrink-0" />
+                  )}
+                  <span>{videoStatus.message}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAddVideo} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold uppercase text-slate-650">Video Başlığı</label>
+                    <input
+                      type="text"
+                      required
+                      value={newVideo.title}
+                      onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="Manyetik Harf Serisi Tanıtımı"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold uppercase text-slate-650">YouTube Video URL *</label>
+                    <input
+                      type="url"
+                      required
+                      value={newVideo.youtubeUrl}
+                      onChange={(e) => setNewVideo({ ...newVideo, youtubeUrl: e.target.value })}
+                      className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors"
+                      placeholder="https://www.youtube.com/watch?v=uijwS3VUgrw"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase text-slate-650">Sıralama Değeri (Order)</label>
+                  <input
+                    type="number"
+                    value={newVideo.order}
+                    onChange={(e) => setNewVideo({ ...newVideo, order: e.target.value })}
+                    className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#f44d46] transition-colors w-full md:w-1/3"
+                    placeholder="1"
+                  />
+                </div>
+
+                <div className="pt-3 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={videoLoading}
+                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-[#f44d46] hover:text-white text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md text-sm disabled:opacity-50"
+                  >
+                    <Plus className="w-4.5 h-4.5" />
+                    <span>Video Ekle</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Video List */}
+            <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                <VideoIcon className="w-5 h-5 text-[#f44d46]" />
+                <span>Mevcut Videolar (Maksimum 6 adet tavsiye edilir)</span>
+              </h2>
+
+              {videos.length === 0 ? (
+                <p className="text-center text-slate-500 py-6">Henüz video eklenmemiş.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {videos.map((video) => (
+                    <div
+                      key={video.id}
+                      className="border border-slate-150 rounded-2xl overflow-hidden flex flex-col bg-slate-50 group hover:shadow-md transition-shadow"
+                    >
+                      {/* Embed Preview */}
+                      <div className="relative aspect-video bg-black overflow-hidden">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${
+                            video.youtubeUrl.includes("v=")
+                              ? video.youtubeUrl.split("v=")[1].split("&")[0]
+                              : video.youtubeUrl.split("/").pop()
+                          }`}
+                          title={video.title}
+                          className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+                        ></iframe>
+                      </div>
+
+                      <div className="p-4 flex-grow flex flex-col justify-between gap-4">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 truncate">{video.title || "YouTube Videosu"}</h4>
+                          <p className="text-[10px] text-slate-400 truncate mt-1">{video.youtubeUrl}</p>
+                          <span className="inline-block bg-slate-200 text-slate-700 text-[10px] font-bold py-0.5 px-2 rounded mt-2">
+                            Sıra: {video.order}
+                          </span>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-200 flex justify-end">
+                          <button
+                            onClick={() => handleDeleteVideo(video.id)}
+                            className="flex items-center justify-center gap-1.5 py-2 px-3.5 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-lg text-xs font-bold transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Videoyu Sil</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

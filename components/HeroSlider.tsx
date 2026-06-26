@@ -11,7 +11,7 @@ interface Slide {
   linkUrl: string;
 }
 
-export default function HeroSlider({ slides }: { slides: Slide[] }) {
+export default function HeroSlider({ slides, videoUrl }: { slides: Slide[]; videoUrl?: string }) {
   const [current, setCurrent] = useState(0);
 
   const handleNext = useCallback(() => {
@@ -24,20 +24,39 @@ export default function HeroSlider({ slides }: { slides: Slide[] }) {
 
   useEffect(() => {
     if (slides.length <= 1) return;
-    const interval = setInterval(handleNext, 6000);
+    const interval = setInterval(handleNext, 8000);
     return () => clearInterval(interval);
   }, [slides.length, handleNext]);
 
+  const isVideo = videoUrl && (videoUrl.endsWith(".mp4") || videoUrl.includes("/uploads/") || videoUrl.includes(".mp4"));
+
   if (!slides || slides.length === 0) {
     return (
-      <div className="relative h-[70vh] bg-slate-900 flex items-center justify-center text-white">
+      <div className="relative h-[80vh] bg-slate-990 flex items-center justify-center text-white">
         <p className="text-xl">Görsel slayt bulunamadı. Lütfen yönetici panelinden slayt ekleyin.</p>
       </div>
     );
   }
 
   return (
-    <div className="relative h-[85vh] w-full overflow-hidden bg-slate-950">
+    <div className="relative h-[85vh] w-full overflow-hidden bg-black">
+      {/* Video Background if available */}
+      {isVideo ? (
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover scale-102"
+          >
+            <source src={videoUrl} type="video/mp4" />
+          </video>
+          {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-black/70 mix-blend-multiply" />
+        </div>
+      ) : null}
+
       {/* Slides Container */}
       {slides.map((slide, index) => (
         <div
@@ -46,32 +65,35 @@ export default function HeroSlider({ slides }: { slides: Slide[] }) {
             index === current ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
           }`}
         >
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-10000 scale-105"
-            style={{ backgroundImage: `url(${slide.imageUrl})` }}
-          />
-
-          {/* Dark Overlay */}
-          <div className="absolute inset-0 bg-slate-950/65 mix-blend-multiply" />
+          {/* Background Image if NOT using background video */}
+          {!isVideo && (
+            <>
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-105"
+                style={{ backgroundImage: `url(${slide.imageUrl})` }}
+              />
+              {/* Dark Overlay */}
+              <div className="absolute inset-0 bg-black/60 mix-blend-multiply" />
+            </>
+          )}
 
           {/* Content */}
           <div className="absolute inset-0 flex items-center justify-center px-4">
             <div className="max-w-4xl text-center text-white flex flex-col items-center gap-6">
               {slide.title && (
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-tight animate-fadeInUp">
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-tight animate-fadeInUp text-white drop-shadow-lg">
                   {slide.title}
                 </h1>
               )}
               {slide.description && (
-                <p className="text-base md:text-xl text-slate-200 max-w-2xl font-light leading-relaxed animate-fadeInUp delay-100">
+                <p className="text-base md:text-xl text-slate-200 max-w-2xl font-light leading-relaxed animate-fadeInUp delay-100 drop-shadow-md">
                   {slide.description}
                 </p>
               )}
               {slide.linkUrl && (
                 <a
                   href={slide.linkUrl}
-                  className="inline-flex items-center gap-2 bg-glowada-500 hover:bg-glowada-600 text-slate-950 font-extrabold py-3.5 px-8 rounded-full shadow-lg hover:shadow-glowada-500/20 hover:scale-105 transition-all text-base animate-fadeInUp delay-200"
+                  className="inline-flex items-center gap-2 bg-[#f44d46] hover:bg-[#d43d36] text-white font-extrabold py-3.5 px-8 rounded-full shadow-lg hover:shadow-[#f44d46]/20 hover:scale-105 transition-all text-base animate-fadeInUp delay-200"
                 >
                   <span>Detayları İncele</span>
                   <ArrowRight className="w-5 h-5" />
@@ -82,19 +104,19 @@ export default function HeroSlider({ slides }: { slides: Slide[] }) {
         </div>
       ))}
 
-      {/* Navigation Arrows */}
-      {slides.length > 1 && (
+      {/* Navigation Arrows (Only shown when not playing video background or if multiple slides present) */}
+      {!isVideo && slides.length > 1 && (
         <>
           <button
             onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-glowada-500 hover:text-slate-950 text-white p-3 rounded-full transition-all border border-white/10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-[#f44d46] hover:text-white text-white p-3 rounded-full transition-all border border-white/10"
             aria-label="Previous Slide"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-glowada-500 hover:text-slate-950 text-white p-3 rounded-full transition-all border border-white/10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-[#f44d46] hover:text-white text-white p-3 rounded-full transition-all border border-white/10"
             aria-label="Next Slide"
           >
             <ChevronRight className="w-6 h-6" />
@@ -111,7 +133,7 @@ export default function HeroSlider({ slides }: { slides: Slide[] }) {
               onClick={() => setCurrent(index)}
               className={`w-3.5 h-3.5 rounded-full transition-all ${
                 index === current
-                  ? "bg-glowada-500 w-8"
+                  ? "bg-[#f44d46] w-8"
                   : "bg-white/40 hover:bg-white/75"
               }`}
               aria-label={`Go to slide ${index + 1}`}

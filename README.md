@@ -8,15 +8,16 @@ Glowada is a premium, modern, and highly interactive business web application de
 - **Top Navigation & Brand Header**: Custom brand logo, customizable navigation, and a call-to-action button linking directly to WhatsApp.
 - **Dynamic Hero Slider**: A fully responsive, animated carousel overlayed with customizable text and action buttons. Loaded dynamically from the database.
 - **Product Showcase**: Tabbed product category showcase grid. Items have premium hover animations, custom pricing details, and quick WhatsApp quotation triggers.
-- **Embedded YouTube Video**: Responsive video player showing the brand's promotional video, editable via the admin panel.
+- **YouTube Videos Grid**: A grid of 6 embedded YouTube videos showcasing application use cases across different sectors, fully configurable via the dashboard.
 - **Quotation & Contact Form**: Validated quote request form with immediate visual feedback, address details, and contact shortcuts.
 - **Footer**: Dynamic contact coordinates, social media links, quick links menu, and automatically updating copyright year.
 
 ### Admin Dashboard (`/admin`)
 - **Secure Admin Session**: Hashed credentials using `bcryptjs` and session tokens managed via JWT cookies.
-- **General Settings tab**: Upsert company logo text, address, phone number, WhatsApp link, email, social links, and the YouTube video link.
+- **General Settings tab**: Upsert company logo text, address, phone number, WhatsApp link, email, social links, distributor note, and the main hero background video link.
 - **Slider Manager tab**: List, add, and delete homepage slides (image URLs, title overlays, description text, and button link details).
 - **Product Manager tab**: Register or delete categorized items, assign pricing tags, and manage order rankings.
+- **Video Manager tab**: Register, list, or delete the 6 YouTube showcase videos with custom titles and sorting order.
 
 ---
 

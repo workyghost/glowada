@@ -13,6 +13,10 @@ export default async function AdminPage() {
     orderBy: { order: "asc" },
   });
 
+  const videos = await prisma.video.findMany({
+    orderBy: { order: "asc" },
+  });
+
   const settings = await prisma.setting.findUnique({
     where: { id: "default" },
   });
@@ -21,6 +25,7 @@ export default async function AdminPage() {
     <AdminDashboard
       initialSlides={slides}
       initialProducts={products}
+      initialVideos={videos}
       initialSettings={settings || undefined}
     />
   );
