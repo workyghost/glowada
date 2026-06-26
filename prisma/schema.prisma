@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Slide {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  title       String
+  description String
+  linkUrl     String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String
+  category    String
+  price       String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Setting {
+  id           String   @id @default("default")
+  logoUrl      String   @default("")
+  phone        String   @default("")
+  email        String   @default("")
+  whatsapp     String   @default("")
+  address      String   @default("")
+  youtubeUrl   String   @default("")
+  instagramUrl String   @default("")
+  facebookUrl  String   @default("")
+  footerText   String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
